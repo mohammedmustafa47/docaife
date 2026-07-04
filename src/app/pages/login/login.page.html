@@ -1,0 +1,24 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>login</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <form #logindata="ngForm" (ngSubmit)="login()">
+    <!-- error message -->
+    <ion-item lines="none" *ngIf="errorMessage" class="error-message">
+      <ion-label color="danger">{{ errorMessage }}</ion-label>
+    </ion-item>
+    <div class="form-group">
+      <label for="exampleInputEmail1">Email address</label>
+      <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" [(ngModel)]="LoginData.email" name="email" required>
+      <small *ngIf="logindata.invalid && logindata.touched" id="emailHelp" class="form-text text-muted">required</small>
+    </div>
+    <div class="form-group">
+      <label for="exampleInputPassword1">Password</label>
+      <input type="password" class="form-control" id="exampleInputPassword1" [(ngModel)]="LoginData.password" name="password" required>
+    </div>
+    <button [disabled]="logindata.invalid" type="submit" class="btn btn-primary">Submit</button>
+  </form>
+</ion-content>

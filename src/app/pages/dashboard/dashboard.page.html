@@ -1,0 +1,63 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>dashboard</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+
+  <!-- Chat Area -->
+  <div class="chat-container">
+    <!-- Status Messages -->
+    <div class="status">
+      <p *ngIf="isUploading">Uploading document...</p>
+      <p *ngIf="isIngesting">Processing document...</p>
+      <p *ngIf="isDocumentReady">Document ready for chat ✅</p>
+    </div>
+  </div>
+
+  <!-- Message Input Bar -->
+  <ion-footer>
+    <ion-toolbar>
+
+      <ion-item lines="none" class="chat-input">
+
+        <!-- Hidden File Input -->
+        <input 
+          type="file" 
+          hidden 
+          #fileInput
+          (change)="onFileSelected($event)" 
+        />
+
+        <!-- Upload Icon -->
+        <ion-button 
+          fill="clear"
+          slot="start"
+          (click)="fileInput.click()"
+          [disabled]="isUploading || isIngesting">
+          <ion-icon name="attach-outline"></ion-icon>
+        </ion-button>
+
+        <!-- Text Input -->
+        <ion-input
+          placeholder="Ask question..."
+          [disabled]="!isDocumentReady">
+          
+        </ion-input>
+
+        <!-- Send Icon -->
+        <ion-button 
+          fill="clear"
+          slot="end"
+          (click)="sendMessage()"
+          [disabled]="!isDocumentReady ">
+          <ion-icon name="send-outline"></ion-icon>
+        </ion-button>
+
+      </ion-item>
+
+    </ion-toolbar>
+  </ion-footer>
+
+</ion-content>

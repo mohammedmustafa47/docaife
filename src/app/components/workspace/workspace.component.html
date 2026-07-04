@@ -1,0 +1,285 @@
+<div class="workspace">
+
+  <!-- Welcome Screen (no upload card — just prompt to use input below) -->
+  <div *ngIf="!currentDocId && !isUploading && !isIngesting" class="welcome-screen">
+    <div class="welcome-content">
+      <ion-icon name="document-text-outline" class="welcome-icon"></ion-icon>
+      <h2>Document AI Chat</h2>
+      <p>Upload a document using the <ion-icon name="attach-outline" style="vertical-align:middle"></ion-icon> icon below, or select one from the sidebar</p>
+    </div>
+  </div>
+
+  <!-- Processing Status -->
+  <div *ngIf="isUploading || isIngesting" class="processing-screen">
+    <ion-spinner name="crescent" color="success"></ion-spinner>
+    <p *ngIf="isUploading">Uploading document...</p>
+    <p *ngIf="isIngesting">Processing document — extracting chunks & embeddings...</p>
+  </div>
+
+  <!-- Error Banner -->
+  <div *ngIf="errorMessage" class="error-banner">
+    <ion-icon name="alert-circle-outline"></ion-icon>
+    <span>{{ errorMessage }}</span>
+    <ion-button fill="clear" size="small" color="light" (click)="errorMessage = ''">
+      <ion-icon name="close-outline"></ion-icon>
+    </ion-button>
+  </div>
+
+  <!-- Chat Area (shown when document is active) -->
+  <ng-container *ngIf="currentDocId && !isUploading && !isIngesting">
+
+    <!-- Chat Header -->
+    <div class="chat-header">
+      <span class="doc-name">{{ currentDocName }}</span>
+      <ion-button
+        fill="clear"
+        size="small"
+        color="medium"
+        (click)="clearChat()"
+        [disabled]="messages.length === 0"
+      >
+        <ion-icon name="trash-outline" slot="start"></ion-icon>
+        Clear Chat
+      </ion-button>
+    </div>
+
+    <!-- Loading History -->
+    <div *ngIf="isLoadingHistory" class="loading-history">
+      <ion-spinner name="dots" color="medium"></ion-spinner>
+      <p>Loading conversation...</p>
+    </div>
+
+    <!-- Messages -->
+    <div class="chat-container" #chatContainer>
+
+      <div *ngIf="!isLoadingHistory && messages.length === 0" class="empty-chat">
+        <ion-icon name="chatbubbles-outline"></ion-icon>
+        <p>Ask anything about your document</p>
+      </div>
+
+      <div
+        *ngFor="let msg of messages"
+        class="message"
+        [ngClass]="msg.role"
+      >
+        <div class="message-avatar">
+          <ion-icon [name]="msg.role === 'user' ? 'person' : 'sparkles'"></ion-icon>
+        </div>
+        <div class="message-content">
+          {{ msg.content }}
+        </div>
+      </div>
+
+      <!-- Typing Indicator -->
+      <div *ngIf="isLoadingAnswer" class="message assistant">
+        <div class="message-avatar">
+          <ion-icon name="sparkles"></ion-icon>
+        </div>
+        <div class="message-content typing">
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </div>
+      </div>
+    </div>
+
+  </ng-container>
+
+  <!-- ✅ Input Bar — always visible at bottom, upload icon lives here -->
+  <div class="input-section">
+
+    <!-- Hidden file input -->
+    <input
+      type="file"
+      #fileInput
+      hidden
+      accept=".pdf,.doc,.docx,.txt"
+      (change)="onFileSelected($event)"
+    />
+
+    <!-- Upload icon button -->
+    <ion-button
+      fill="clear"
+      color="medium"
+      class="attach-btn"
+      (click)="fileInput.click()"
+      [disabled]="isUploading || isIngesting"
+      title="Upload document"
+    >
+      <ion-icon name="attach-outline" slot="icon-only"></ion-icon>
+    </ion-button>
+
+    <!-- Selected file chip (shows when file picked but not yet uploaded) -->
+    <div *ngIf="selectedFile && !currentDocId" class="file-chip">
+      <ion-icon name="document-outline"></ion-icon>
+      <span>{{ selectedFile.name }}</span>
+      <ion-button fill="clear" size="small" (click)="selectedFile = null">
+        <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </div>
+
+    <!-- Text input (disabled until doc is ready) -->
+    <input
+      type="text"
+      #inputField
+      placeholder="Ask about your document..."
+      [disabled]="!isReady || isLoadingAnswer"
+      (keydown)="onKeyDown($event, inputField)"
+    />
+
+    <!-- Send / Upload-and-process button -->
+    <ion-button
+      color="success"
+      (click)="sendMessage(inputField)"
+      [disabled]="!isReady || isLoadingAnswer"
+    >
+      <ion-icon
+        name="send"
+        slot="icon-only"
+      ></ion-icon>
+    </ion-button>
+
+  </div>
+
+</div>
+
+
+<!-- <div class="workspace">
+
+  Welcome / Upload Screen (shown when no document selected)
+  <div *ngIf="!currentDocId && !isUploading && !isIngesting" class="welcome-screen">
+    <div class="welcome-content">
+      <ion-icon name="document-text-outline" class="welcome-icon"></ion-icon>
+      <h2>Document AI Chat</h2>
+      <p>Upload a document or select one from the sidebar to start chatting</p>
+
+      <div class="upload-card">
+        <input
+          type="file"
+          #fileInput
+          hidden
+          accept=".pdf,.doc,.docx,.txt"
+          (change)="onFileSelected($event)"
+        />
+        <ion-button
+          expand="block"
+          color="success"
+          (click)="fileInput.click()"
+        >
+          <ion-icon name="cloud-upload-outline" slot="start"></ion-icon>
+          Select Document
+        </ion-button>
+
+        <div *ngIf="selectedFile" class="selected-file">
+          <ion-icon name="document-outline"></ion-icon>
+          <span>{{ selectedFile.name }}</span>
+        </div>
+
+        <ion-button
+          *ngIf="selectedFile"
+          expand="block"
+          color="primary"
+          (click)="uploadAndIngest()"
+        >
+          Upload & Process
+        </ion-button>
+      </div>
+    </div>
+  </div>
+
+  Processing Status
+  <div *ngIf="isUploading || isIngesting" class="processing-screen">
+    <ion-spinner name="crescent" color="success"></ion-spinner>
+    <p *ngIf="isUploading">Uploading document...</p>
+    <p *ngIf="isIngesting">Processing document — extracting chunks & embeddings...</p>
+  </div>
+
+  Error Banner
+  <div *ngIf="errorMessage" class="error-banner">
+    <ion-icon name="alert-circle-outline"></ion-icon>
+    <span>{{ errorMessage }}</span>
+    <ion-button fill="clear" size="small" color="light" (click)="errorMessage = ''">
+      <ion-icon name="close-outline"></ion-icon>
+    </ion-button>
+  </div>
+
+  Chat Area (shown when document is active)
+  <ng-container *ngIf="currentDocId && !isUploading && !isIngesting">
+
+    Chat Header
+    <div class="chat-header">
+      <span class="doc-name">{{ currentDocName }}</span>
+      <ion-button
+        fill="clear"
+        size="small"
+        color="medium"
+        (click)="clearChat()"
+        [disabled]="messages.length === 0"
+      >
+        <ion-icon name="trash-outline" slot="start"></ion-icon>
+        Clear Chat
+      </ion-button>
+    </div>
+
+    Loading History
+    <div *ngIf="isLoadingHistory" class="loading-history">
+      <ion-spinner name="dots" color="medium"></ion-spinner>
+      <p>Loading conversation...</p>
+    </div>
+
+    Messages
+    <div class="chat-container" #chatContainer>
+
+      Empty chat state
+      <div *ngIf="!isLoadingHistory && messages.length === 0" class="empty-chat">
+        <ion-icon name="chatbubbles-outline"></ion-icon>
+        <p>Ask anything about your document</p>
+      </div>
+
+      <div
+        *ngFor="let msg of messages"
+        class="message"
+        [ngClass]="msg.role"
+      >
+        <div class="message-avatar">
+          <ion-icon [name]="msg.role === 'user' ? 'person' : 'sparkles'"></ion-icon>
+        </div>
+        <div class="message-content">
+          {{ msg.content }}
+        </div>
+      </div>
+
+      Typing Indicator
+      <div *ngIf="isLoadingAnswer" class="message assistant">
+        <div class="message-avatar">
+          <ion-icon name="sparkles"></ion-icon>
+        </div>
+        <div class="message-content typing">
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </div>
+      </div>
+    </div>
+
+    Input
+    <div class="input-section">
+      <input
+        type="text"
+        #inputField
+        placeholder="Ask about your document..."
+        [disabled]="!isReady || isLoadingAnswer"
+        (keydown)="onKeyDown($event, inputField)"
+      />
+      <ion-button
+        color="success"
+        (click)="sendMessage(inputField)"
+        [disabled]="!isReady || isLoadingAnswer"
+      >
+        <ion-icon name="send" slot="icon-only"></ion-icon>
+      </ion-button>
+    </div>
+
+  </ng-container>
+
+</div> -->
