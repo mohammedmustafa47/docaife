@@ -6,7 +6,7 @@ import { DocumentService, ChatMessage, ChatResponse } from 'src/app/core/service
 @Component({
   selector: 'app-workspace',
   templateUrl: './workspace.component.html',
-  styleUrls: ['./workspace.component.scss'],  // ← Fixed: was .css
+  styleUrls: ['./workspace.component.scss'],
   standalone:false
 })
 export class WorkspaceComponent implements OnInit, OnDestroy, AfterViewChecked {
@@ -123,39 +123,6 @@ export class WorkspaceComponent implements OnInit, OnDestroy, AfterViewChecked {
         }
       });
     }
-  // uploadAndIngest(): void {
-  //   if (!this.selectedFile) return;
-
-  //   this.isUploading = true;
-  //   this.errorMessage = '';
-
-  //   // Fixed: flattened nested subscribe using switchMap
-  //   this.documentService.uploadDocument(this.selectedFile).pipe(
-  //     switchMap((uploadRes: any) => {
-  //       this.currentDocId = uploadRes.data.id;
-  //       this.currentDocName = uploadRes.data.filename || this.selectedFile!.name;
-  //       this.documentService.setCurrentDocument(this.currentDocId!);
-
-  //       this.isUploading = false;
-  //       this.isIngesting = true;
-
-  //       return this.documentService.ingestDocument(this.currentDocId!);
-  //     }),
-  //     finalize(() => {
-  //       this.isUploading = false;
-  //       this.isIngesting = false;
-  //     })
-  //   ).subscribe({
-  //     next: () => {
-  //       this.isReady = true;
-  //       this.messages = [];
-  //     },
-  //     error: (err) => {
-  //       console.error('Upload/Ingest failed:', err);
-  //       this.errorMessage = err?.error?.message || 'Upload or processing failed. Please try again.';
-  //     }
-  //   });
-  // }
 
   // -------------------------
   // CHAT HISTORY

@@ -20,25 +20,16 @@ export class AuthService {
   constructor(private http: HttpClient) {
 
     const savedProfile = localStorage.getItem('userProfile');
-    // if (savedProfile) {
-    //   this.profileSubject.next(JSON.parse(savedProfile));
-      
-    //   console.log('✅ Profile loaded from localStorage:', JSON.parse(savedProfile));
-    // }
     if (savedProfile) {
-    try {
-      const parsed = JSON.parse(savedProfile);
-      
-      // ✅ Handle both formats: {data: {...}} and {...}
-      const profile = parsed.data || parsed;
-      
-      this.profileSubject.next(profile);
-      console.log('✅ Profile loaded from localStorage:', profile);
-    } catch (error) {
-      console.error('❌ Error parsing saved profile:', error);
-      localStorage.removeItem('userProfile');
+      try {
+        const parsed = JSON.parse(savedProfile);
+        const profile = parsed.data || parsed;
+        this.profileSubject.next(profile);
+      } catch (error) {
+        console.error('Error parsing saved profile:', error);
+        localStorage.removeItem('userProfile');
+      }
     }
-  }
   }
 
 
@@ -70,28 +61,13 @@ export class AuthService {
   // PROFILE
   // ==========================
 
-  // getProfile(): Observable<any> {
-  //   return this.http.get(`${this.baseUrl}/authapi/profile/`)
-  //     .pipe(catchError(this.handleError));
-  // }
-   getProfile(): Observable<any> {
+  getProfile(): Observable<any> {
     return this.http.get(`${this.baseUrl}/authapi/profile/`)
       .pipe(
         tap(response => {
-          console.log('📦 Profile received from Django:', response);
-          
-          // ✅ Extract profile from response.data (or use response directly)
-          const Profile = (response as any).data || response;
-          
-          console.log('👤 Extracted profile:', Profile);
-
-          // ✅ Store profile in BehaviorSubject (in-memory)
-          this.profileSubject.next(Profile);
-          console.log('✅ Profile stored in BehaviorSubject');
-          
-          // ✅ Store profile in localStorage (survives refresh)
-          localStorage.setItem('userProfile', JSON.stringify(Profile));
-          console.log('💾 Profile saved to localStorage');
+          const profile = (response as any).data || response;
+          this.profileSubject.next(profile);
+          localStorage.setItem('userProfile', JSON.stringify(profile));
         }),
         catchError(this.handleError)
       );
@@ -112,7 +88,6 @@ export class AuthService {
       refresh_token: refresh
     }).pipe(
       tap(() => {
-        console.log('🚪 Logging out...');
         this.profileSubject.next(null);
         localStorage.removeItem('userProfile');
         this.clearStorage();

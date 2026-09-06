@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { Subscription,Subject  } from 'rxjs';
+import { Subject } from 'rxjs';
 import { DocumentService, DocumentDetail } from 'src/app/core/services/document.service';
 import { takeUntil } from 'rxjs/operators';
 import { AuthService } from 'src/app/core/services/auth.service';
@@ -24,49 +24,30 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   private destroy$ = new Subject<void>();
 
-  private subscriptions = new Subscription();
-
-  
-
   constructor(private documentService: DocumentService, private authService: AuthService,
     private router: Router
   ) {}
 
-  // ngOnInit(): void {
-  //   this.loadDocuments();
-
-  //   // Track which document is currently active
-  //   const sub = this.documentService.currentDoc$.subscribe(id => {
-  //     this.activeDocId = id;
-  //   });
-  //   this.subscriptions.add(sub);
-  // }
   ngOnInit(): void {
-  // Initial load
-  this.authService.profile$.pipe(
+    this.authService.profile$.pipe(
       takeUntil(this.destroy$)
     ).subscribe(profile => {
       this.profile = profile;
-      console.log('👤 Profile in sidebar:', this.profile);
     });
 
-  this.loadDocuments();
+    this.loadDocuments();
 
-  // ✅ Listen for refresh signals from workspace uploads
-  this.documentService.documentListRefresh$
-    .pipe(takeUntil(this.destroy$))
-    .subscribe(() => {
-      this.loadDocuments(); // Auto-refresh when workspace uploads a doc
-        });
-    }
+    // Listen for refresh signals from workspace uploads
+    this.documentService.documentListRefresh$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.loadDocuments();
+      });
+  }
 
-  // ngOnDestroy(): void {
-  //   this.subscriptions.unsubscribe();
-  // }
   ngOnDestroy(): void {
-  this.destroy$.next();
-  this.destroy$.complete();
-  this.subscriptions.unsubscribe();
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   loadDocuments(): void {
@@ -91,29 +72,9 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   onNewChat(): void {
-    // Reset current document — your chat component should 
-    // react to this and show the upload/new chat screen
+    // Reset current document so the workspace shows the upload/new chat screen
     this.documentService.setCurrentDocument(null);
   }
-
-  // onFileSelected(event: Event): void {
-  //   const input = event.target as HTMLInputElement;
-  //   const file = input?.files?.[0];
-  //   if (!file) return;
-
-  //   this.documentService.uploadDocument(file).subscribe({
-  //     next: () => {
-  //       this.loadDocuments(); // Refresh list after upload
-  //     },
-  //     error: (err) => {
-  //       console.error('Upload failed:', err);
-  //       this.errorMessage = 'Upload failed';
-  //     }
-  //   });
-
-    // Reset input so same file can be re-selected
-  //   input.value = '';
-  // }
 
   formatTime(dateString: string): string {
     if (!dateString) return '';
@@ -146,10 +107,10 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   closeProfile(): void {
-  this.showProfileModal = false;
-}
+    this.showProfileModal = false;
+  }
 
-onLogout(): void {
+  onLogout(): void {
     this.isLoggingOut = true;
 
     this.authService.logout().subscribe({
@@ -164,23 +125,4 @@ onLogout(): void {
       }
     });
   }
-
-
 }
-
-
-
-// import { Component, OnInit } from '@angular/core';
-
-// @Component({
-//   selector: 'app-sidebar',
-//   templateUrl: './sidebar.component.html',
-//   styleUrls: ['./sidebar.component.scss'],
-// })
-// export class SidebarComponent  implements OnInit {
-
-//   constructor() { }
-
-//   ngOnInit() {}
-
-// }
